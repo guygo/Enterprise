@@ -1,11 +1,12 @@
 const { Pool } = require('pg');
-
+const myjsonparser=require('../service/JsonParser')
 function Employee() {
     this.pool = new Pool({
         connectionString: process.env.DATABASE_URL
       });
   }
   
+
   Employee.prototype.getEmployees = async function getEmployees() {
     const queryText = {text:'SELECT hire_date,first_name,last_name,birth_date from employees'};
     return await ExecuteQuery(this.pool,queryText);
@@ -26,8 +27,10 @@ function Employee() {
     res =await pool.query(query);
     return res;
   }
-  Employee.prototype.addEmployee = async function addEmployee(values) {
+  Employee.prototype.addEmployee = async function addEmployee(jsondata) {
     try {
+      var json=new myjsonparser(jsondata);
+      var values=json.getValues(['birth_date','first_name','last_name','gender','hire_date']);
     const queryText = {text:'INSERT INTO employees(birth_date,first_name,last_name,gender,hire_date) VALUES($1,$2,$3,$4,$5) RETURNING *',values: values};
     return await ExecuteQuery(this.pool,queryText);
     }
@@ -46,3 +49,4 @@ function Employee() {
   };
   
   module.exports = Employee;
+  

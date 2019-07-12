@@ -1,12 +1,12 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-var bodyParser = require('body-parser');
-var jsonParser = bodyParser.json();
-var Employee = require("../models/Employee");
-var Salary = require("../models/salaries");
-var employee = new  Employee();
-var Salarie=new Salary();
+const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json();
+const Employee = require("../models/Employee");
+const Salary = require("../models/salaries");
+const employee = new  Employee();
+const Salarie=new Salary();
 router.get('/',async (req,res)=>{
 
   data=await employee.getEmployees();
@@ -29,10 +29,9 @@ router.post('/salary/:id',jsonParser,async (req,res)=>{
   
 });
 router.post('/',jsonParser,async (req,res)=>{
-  
-  await employee.addEmployee(req.body.values); 
-  
-  res.send('done');  
+  console.log(req.body);
+  await employee.addEmployee(req.body); 
+ res.status(201).json({message:'done'});  
   
 });
 module.exports = router;
