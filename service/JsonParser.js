@@ -12,7 +12,10 @@ JsonParser.prototype.getValues=function(keys){
     var values=[];
     for(var i=0;i<keys.length;i++)
     {
-        
+        if(this.json[keys[i]==undefined ||this.json[keys[i]]==''])
+        {
+            return [];
+        }
         values.push(this.json[keys[i]]);
     }
     

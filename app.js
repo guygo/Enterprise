@@ -1,34 +1,40 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var logger = require('morgan');
-
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const logger = require('morgan');
 const dotenv = require('dotenv');
-
-var moment = require('moment');
-
 dotenv.config();
 
-global.guy="guy"
+const Auth=require('./routes/Auth');
+const employeesRouter = require('./routes/Employee');
+const departmentsRouter = require('./routes/Departments');
 
-var employeesRouter = require('./routes/Employee');
-var departmentsRouter = require('./routes/Departments');
-
-var app = express();
-app.use((req,res,next)=>{
-  res.setHeader("Access-Control-Allow-Origin","*");
-  res.setHeader("Access-Control-Allow-Headers","Origin,X-Requested_with,Content-Type,Accept");
-  res.setHeader("Access-Control-Allow-Methods","GET,POST,PATCH,DELET, OPTIONS");
-next();
-});
-app.use(logger('dev'));
+const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  next();
+});
 
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(logger('dev'));
+
+
+app.use('/images',express.static(path.join(__dirname, 'public/images')));
 
 //app.use('/', indexRouter);
-app.use('/Employees', employeesRouter);
+app.use('/Auth', Auth);
+
+app.use('/Employees',employeesRouter);
 app.use('/departments', departmentsRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
