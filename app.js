@@ -7,7 +7,20 @@ dotenv.config();
 
 const Auth=require('./routes/Auth');
 const employeesRouter = require('./routes/Employee');
+const calendarRouter = require('./routes/Calendar');
 const departmentsRouter = require('./routes/Departments');
+const mongoose = require("mongoose");
+mongoose
+  .connect(
+    'mongodb://localhost:27017/Enterprise'
+  )
+  .then(() => {
+    console.log("Connected to database!");
+  })
+  .catch(() => {
+    console.log("Connection failed!");
+  });
+
 
 const app = express();
 app.use(express.json());
@@ -32,10 +45,10 @@ app.use(logger('dev'));
 app.use('/images',express.static(path.join(__dirname, 'public/images')));
 
 //app.use('/', indexRouter);
-app.use('/Auth', Auth);
-
-app.use('/Employees',employeesRouter);
-app.use('/departments', departmentsRouter);
+app.use('/api/Auth', Auth);
+app.use('/api/calendar',calendarRouter);
+app.use('/api/Employees',employeesRouter);
+app.use('/api/departments', departmentsRouter);
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

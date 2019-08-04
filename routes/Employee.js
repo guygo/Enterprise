@@ -3,10 +3,11 @@ const router = express.Router();
 
 const multer = require("multer");
 
-const Employee = require("../models/Employee");
-const Salary = require("../models/salaries");
-const employee = new  Employee();
-const Salarie=new Salary();
+const Employee = require("../models/mongo/Employee");
+const Salary = require("../models/mongo/Salary");
+const Title = require("../models/mongo/Title");
+//const employee = new  Employee();
+//const Salarie=new Salary();
 const Authorization=require('../middleware/check_auth');
 
 const MIME_TYPE_MAP = {
@@ -35,17 +36,17 @@ const storage = multer.diskStorage({
 
 router.get('/',Authorization,async (req,res)=>{
   
-  data=await employee.getEmployees();
-  
-  res.send(data.rows);  
+  data=await Employee.find({}).exec();
+  console.log(JSON.stringify(data));
+  res.send(data);  
   
 });
 router.get('/:id',Authorization,async (req,res)=>{
   
  try{
-  data=await employee.getEmployeeById([req.params.id]);
- 
-  if(typeof data.rows === 'undefined' || data.rows.length <= 0)
+  data=await Employee.findById(req.params.id).exec();
+  console.log(JSON.stringify(data));
+  if(typeof data === 'undefined' || data.length <= 0)
   {
     
       res.send({message:'not found'});
@@ -53,84 +54,123 @@ router.get('/:id',Authorization,async (req,res)=>{
   }
   else
   {
-    res.send(data.rows[0]); 
+    res.send(data); 
   }
 }catch (error) {
   console.error(`readFile failed: ${error}`);
+  res.send({message:'not found'});
   return false;
    
 }
   
   
 });
+
 router.get('/salary/:id',Authorization,async (req,res)=>{
 
-  data=await Salarie.getEmployees();
+  data=await Salarie.getEmploySalarieByid(req.params.id);
   
   res.send(data.rows);  
   
 });
-router.post('/salary/:id',Authorization,async (req,res)=>{
+router.post('/:id/salary',Authorization,async (req,res)=>{
+  try{
+  salary=new Salary({
+    salary:req.body.salary,
+    fromDate:req.body.fromDate,
+    toDate:req.body.toDate,
+    employee:req.params.id
+  });
+ 
+  message=await salary.save(); 
   
-  await Salarie.addSalary( Array(req.params.id).concat(req.body.values)); 
+  res.status(201).json({message:'done'});    
+}catch(err){ res.status(401).json({message:'error'});;console.log(err);}
+});
+router.post('/:id/title',Authorization,async (req,res)=>{
+  try{
+  title=new Title({
+    title:req.body.title,
+    fromDate:req.body.fromDate,
+    toDate:req.body.toDate,
+    employee:req.params.id
+  });
+ 
+  message=await title.save(); 
   
-  res.send('done');  
-  
+  res.status(201).json({message:'done'});    
+}catch(err){ res.status(401).json({message:'error'});;console.log(err);}
 });
 router.put('/:id',Authorization,multer({ storage: storage }).single("image"),async (req,res)=>{
-  
-  
-  
    if(req.file)
    {
     const body=req.body;
   
     const url=req.protocol+'://'+req.get("host");
-    success=await employee.updateEmployee(req.params.id,{
-      first_name:body.first_name,
-      last_name:body.last_name,
+    const employee =new Employee({
+      _id:req.params.id,
+      firstName:body.first_name,
+      lastName:body.last_name,
       gender:body.gender,
-      hire_date:body.hire_date,
-    birth_date:body.birth_date,
-      image_url:url+"/images/"+req.file.filename
-    });
-   
+      hireDate:body.hire_date,
+      birthDate:body.birth_date,
+      imgUrl:url+"/images/"+req.file.filename
+  
+      });
+      res=await Employee.updateOne({_id:req.params.id},employee).exec();
+      if(res){
+        res.status(201).json({message:'done'});  
+      }
+       else
+       {
+        res.status(401).json({message:'fail'});
+       }
+     
    }
    else{
     const body=req.body;
-    success=await employee.updateEmployee(req.params.id,{
-      first_name:body.first_name,
-      last_name:body.last_name,
-      gender:body.gender,
-      hire_date:body.hire_date,
-      birth_date:body.birth_date,
-      image_url:body.imageUrl
+    const employee =new Employee({
+    _id:req.params.id,
+    firstName:body.first_name,
+    lastName:body.last_name,
+    gender:body.gender,
+    hireDate:body.hire_date,
+    birthDate:body.birth_date,
+    imgUrl:body.imageUrl
+
     });
+    res=await Employee.updateOne({_id:req.params.id},employee).exec();
+    if(res){
+      res.status(201).json({message:'done'});  
+    }
+     else
+     {
+      res.status(401).json({message:'fail'});
+     }
+   }
  
-   }
-  if(success){
-    res.status(201).json({message:'done'});  
-  }
-   else
-   {
-    res.status(401).json({message:'fail'});
-   }
 });
+
+
 router.post('/',Authorization,multer({ storage: storage }).single("image"),async (req,res)=>{
   
   const body=req.body;
   
   const url=req.protocol+'://'+req.get("host");
-  success=await employee.addEmployee({
-    first_name:body.first_name,
-    last_name:body.last_name,
+  const employee =new Employee({
+    
+    firstName:body.first_name,
+    lastName:body.last_name,
     gender:body.gender,
-    hire_date:body.hire_date,
-    birth_date:body.birth_date,
-    image_url:url+"/images/"+req.file.filename
-  });
-if(success){
-  res.status(201).json({message:'done',url:url+"/images/"+req.file.filename});  
+    hireDate:body.hire_date,
+    birthDate:body.birth_date,
+    imgUrl:url+"/images/"+req.file.filename
+
+    });
+    emp=await employee.save();
+   
+if(res){
+  res.status(201).json({message:'done',url:url+"/images/"+req.file.filename,id:emp._id});  
 }
  else
  {
