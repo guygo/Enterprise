@@ -2,15 +2,13 @@ const express = require('express');
 const router = express.Router();
 const Calendar=require('../models/mongo/calendarEvent')
 router.post('/',async (req,res)=>{
-    const calendar=new Calendar({
-        title:req.body.tile,
-        description:req.body.description,
-        date:req.body.date
+    console.log(req.body[0].date);
+    data=await Calendar.insertMany(req.body,function(err){
+        console.log(err);
     });
-
-    data=calendar.save();
-    console.log(JSON.stringify(data));
-    res.send(data);  
+   
+    
+    res.send('sucess');  
     
   });
   module.exports = router;
